@@ -230,8 +230,8 @@ public class UsbMassStorageDevice {
 		Log.i(TAG, "MAX LUN " + (int)b[0]);
 		blockDevice = BlockDeviceDriverFactory.createBlockDevice(communication);
 		blockDevice.init();
-		partitionTable = PartitionTableFactory.createPartitionTable(blockDevice);
-		initPartitions();
+//		partitionTable = PartitionTableFactory.createPartitionTable(blockDevice);
+//		initPartitions();
 	}
 
 	/**
