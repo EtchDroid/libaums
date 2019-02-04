@@ -26,7 +26,8 @@ import static org.junit.Assert.fail;
 
 public class Fat32FileSystemProducer implements IProducer<Pair<Fat32FileSystem, JsonObject>> {
     private File originalFile;
-    private File tempFile;
+    private File tempFile = null;
+    private FileBlockDeviceDriver fileBlockDevice;
     private BlockDeviceDriver blockDevice;
     private JsonObject expecteValues;
 
@@ -39,6 +40,7 @@ public class Fat32FileSystemProducer implements IProducer<Pair<Fat32FileSystem, 
             URL url = new URL(imageUrl);
             ReadableByteChannel rbc = Channels.newChannel(url.openStream());
             File tempFile = File.createTempFile("blockdevice", ".bin");
+            tempFile.deleteOnExit();
             FileOutputStream fos = new FileOutputStream(tempFile);
             fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
 
@@ -56,11 +58,11 @@ public class Fat32FileSystemProducer implements IProducer<Pair<Fat32FileSystem, 
 
     public synchronized Pair<Fat32FileSystem, JsonObject> newInstance() {
         try {
-            blockDevice = new ByteBlockDevice(
-                    new FileBlockDeviceDriver(
-                            tempFile,
-                            expecteValues.get("blockSize").asInt(),
-                            expecteValues.get("blockSize").asInt() * expecteValues.get("fileSystemOffset").asInt()));
+            fileBlockDevice = new FileBlockDeviceDriver(
+                    tempFile,
+                    expecteValues.get("blockSize").asInt(),
+                    expecteValues.get("blockSize").asInt() * expecteValues.get("fileSystemOffset").asInt());
+            blockDevice = new ByteBlockDevice(fileBlockDevice);
             blockDevice.init();
             return new Pair<>(Fat32FileSystem.read(blockDevice), expecteValues);
         } catch (IOException e) {
@@ -71,14 +73,22 @@ public class Fat32FileSystemProducer implements IProducer<Pair<Fat32FileSystem, 
         return null;
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     public synchronized void cleanUp() {
         try {
             ReadableByteChannel rbc = Channels.newChannel(new FileInputStream(originalFile));
-            File tempFile = File.createTempFile("tmp_blockdevice", ".bin");
+
+            if (tempFile == null) {
+                tempFile = File.createTempFile("tmp_blockdevice", ".bin");
+                tempFile.deleteOnExit();
+            } else {
+                fileBlockDevice.close();
+                tempFile.delete();
+                tempFile.createNewFile();
+            }
+
             FileOutputStream fos = new FileOutputStream(tempFile);
             fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-
-            this.tempFile = tempFile;
         } catch (IOException e) {
             e.printStackTrace();
             fail();

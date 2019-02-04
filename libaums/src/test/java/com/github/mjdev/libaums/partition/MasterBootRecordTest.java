@@ -77,26 +77,33 @@ public class MasterBootRecordTest {
             URL mbrUrl = entry.getKey();
             List<Map<String, Integer>> partitionTableInfo = entry.getValue();
 
-            FileBlockDeviceDriver blockDevice = new FileBlockDeviceDriver(mbrUrl);
-            blockDevice.init();
+            FileBlockDeviceDriver blockDevice = null;
+            try {
+                blockDevice = new FileBlockDeviceDriver(mbrUrl);
+                blockDevice.init();
 
-            ByteBuffer buffer = ByteBuffer.allocate(512);
-            blockDevice.read(0, buffer);
-            buffer.flip();
-            MasterBootRecord mbr = MasterBootRecord.read(buffer);
+                ByteBuffer buffer = ByteBuffer.allocate(512);
+                blockDevice.read(0, buffer);
+                buffer.flip();
+                MasterBootRecord mbr = MasterBootRecord.read(buffer);
 
-            List<PartitionTableEntry> table = mbr.getPartitionTableEntries();
-            Assert.assertEquals(mbrUrl.getFile(), partitionTableInfo.size(), table.size());
+                List<PartitionTableEntry> table = mbr.getPartitionTableEntries();
+                Assert.assertEquals(mbrUrl.getFile(), partitionTableInfo.size(), table.size());
 
-            int i = 0;
-            for (PartitionTableEntry e : table) {
-                Assert.assertEquals(mbrUrl.getFile(), partitionTableInfo.get(i).get("partitionType").intValue(),
-                        e.getPartitionType());
-                Assert.assertEquals(mbrUrl.getFile(), partitionTableInfo.get(i).get("logicalBlockAddress").intValue(),
-                        e.getLogicalBlockAddress());
-                Assert.assertEquals(mbrUrl.getFile(), partitionTableInfo.get(i).get("totalNumberOfSectors").intValue(),
-                        e.getTotalNumberOfSectors());
-                i++;
+                int i = 0;
+                for (PartitionTableEntry e : table) {
+                    Assert.assertEquals(mbrUrl.getFile(), partitionTableInfo.get(i).get("partitionType").intValue(),
+                            e.getPartitionType());
+                    Assert.assertEquals(mbrUrl.getFile(), partitionTableInfo.get(i).get("logicalBlockAddress").intValue(),
+                            e.getLogicalBlockAddress());
+                    Assert.assertEquals(mbrUrl.getFile(), partitionTableInfo.get(i).get("totalNumberOfSectors").intValue(),
+                            e.getTotalNumberOfSectors());
+                    i++;
+                }
+            } finally {
+                if (blockDevice != null) {
+                    blockDevice.close();
+                }
             }
         }
     }

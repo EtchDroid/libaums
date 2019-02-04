@@ -18,25 +18,39 @@ import static org.junit.Assert.*;
 public class PartitionTableFactoryTest {
     @Test
     public void testMbrCreate() throws Exception {
-        BlockDeviceDriver blockDevice = new FileBlockDeviceDriver(
-                new URL("https://www.dropbox.com/s/w3x12zw6d6lc6x5/mbr_1_partition_hfs%2B.bin?dl=1"));
-        blockDevice.init();
+        FileBlockDeviceDriver blockDevice = null;
 
-        PartitionTable table = PartitionTableFactory.createPartitionTable(blockDevice);
+        try {
+            blockDevice = new FileBlockDeviceDriver(
+                    new URL("https://www.dropbox.com/s/w3x12zw6d6lc6x5/mbr_1_partition_hfs%2B.bin?dl=1"));
+            blockDevice.init();
 
-        assertTrue(table instanceof MasterBootRecord);
+            PartitionTable table = PartitionTableFactory.createPartitionTable(blockDevice);
+
+            assertTrue(table instanceof MasterBootRecord);
+        } finally {
+            if (blockDevice != null)
+                blockDevice.close();
+        }
     }
 
     @Test
     public void testFileSystemCreate() throws Exception {
-        BlockDeviceDriver blockDevice = new FileBlockDeviceDriver(
-                new URL("https://www.dropbox.com/s/3bxngiqmwitlucd/mbr_fat32.img?dl=1"),
-                2 * 512);
-        blockDevice.init();
+        FileBlockDeviceDriver blockDevice = null;
 
-        PartitionTable table = PartitionTableFactory.createPartitionTable(blockDevice);
+        try {
+            blockDevice = new FileBlockDeviceDriver(
+                    new URL("https://www.dropbox.com/s/3bxngiqmwitlucd/mbr_fat32.img?dl=1"),
+                    2 * 512);
+            blockDevice.init();
 
-        assertTrue(table instanceof FileSystemPartitionTable);
+            PartitionTable table = PartitionTableFactory.createPartitionTable(blockDevice);
+
+            assertTrue(table instanceof FileSystemPartitionTable);
+        } finally {
+            if (blockDevice != null)
+                blockDevice.close();
+        }
     }
 
 }

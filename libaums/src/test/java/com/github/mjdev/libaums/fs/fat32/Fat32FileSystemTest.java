@@ -6,9 +6,7 @@ import com.github.mjdev.libaums.driver.BlockDeviceDriver;
 import com.github.mjdev.libaums.driver.ByteBlockDevice;
 import com.github.mjdev.libaums.driver.file.FileBlockDeviceDriver;
 import com.github.mjdev.libaums.util.Pair;
-
 import org.apache.commons.io.IOUtils;
-import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.xenei.junit.contract.Contract;
 import org.xenei.junit.contract.ContractImpl;
@@ -27,41 +25,41 @@ import static org.junit.Assert.fail;
 @ContractImpl(Fat32FileSystem.class)
 public class Fat32FileSystemTest {
 
-    IProducer<Pair<Fat32FileSystem, JsonObject>> producer =
-            new IProducer<Pair<Fat32FileSystem, JsonObject>>() {
+	IProducer<Pair<Fat32FileSystem, JsonObject>> producer =
+			new IProducer<Pair<Fat32FileSystem, JsonObject>>() {
 
-                private BlockDeviceDriver blockDevice;
+				private BlockDeviceDriver blockDevice;
+				private FileBlockDeviceDriver fileBlockDevice;
 
-                public Pair<Fat32FileSystem, JsonObject> newInstance() {
-                    try {
-                        JsonObject obj = Json.parse(IOUtils.toString(
-                                new URL("https://www.dropbox.com/s/nek7bu08prykkhv/expectedValues.json?dl=1")
-                                        .openStream())).asObject();
+				public Pair<Fat32FileSystem, JsonObject> newInstance() {
+					try {
+						JsonObject obj = Json.parse(IOUtils.toString(
+								new URL("https://www.dropbox.com/s/nek7bu08prykkhv/expectedValues.json?dl=1")
+										.openStream())).asObject();
 
-                        if (blockDevice == null) {
-                            blockDevice = new ByteBlockDevice(
-                                    new FileBlockDeviceDriver(
-                                    new URL("https://www.dropbox.com/s/3bxngiqmwitlucd/mbr_fat32.img?dl=1"),
-                                    obj.get("blockSize").asInt(),
-                                    obj.get("blockSize").asInt() * obj.get("fileSystemOffset").asInt()));
-                            blockDevice.init();
-                        }
-                        return new Pair<>(Fat32FileSystem.read(blockDevice), obj);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        fail();
-                    }
+						if (blockDevice == null) {
+							fileBlockDevice = new FileBlockDeviceDriver(
+									new URL("https://www.dropbox.com/s/3bxngiqmwitlucd/mbr_fat32.img?dl=1"),
+									obj.get("blockSize").asInt(),
+									obj.get("blockSize").asInt() * obj.get("fileSystemOffset").asInt());
+							blockDevice = new ByteBlockDevice(fileBlockDevice);
+							blockDevice.init();
+						}
+						return new Pair<>(Fat32FileSystem.read(blockDevice), obj);
+					} catch (IOException e) {
+						e.printStackTrace();
+						fail();
+					}
 
-                    return null;
-                }
+					return null;
+				}
 
-                public void cleanUp() {
-                    // no cleanup required.
-                }
-            };
+				public void cleanUp() {
+				}
+			};
 
-    @Contract.Inject
-    public IProducer<Pair<Fat32FileSystem, JsonObject>> makeFat32FileSystem() {
-        return producer;
-    }
+	@Contract.Inject
+	public IProducer<Pair<Fat32FileSystem, JsonObject>> makeFat32FileSystem() {
+		return producer;
+	}
 }

@@ -52,9 +52,11 @@ dependencies {
     testImplementation 'com.eclipsesource.minimal-json:minimal-json:0.9.4'
     testImplementation 'org.xenei:junit-contracts:0.1.7'
     testImplementation 'org.mockito:mockito-core:2.7.22'
+    testImplementation 'net.bytebuddy:byte-buddy:1.6.11'
+    testImplementation 'org.objenesis:objenesis:2.6'
 
     api 'com.android.support:support-annotations:28.0.0'
-    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 }
 repositories {
     mavenCentral()
