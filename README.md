@@ -1,38 +1,28 @@
-# Libaums (fork for [EtchDroid](https://github.com/Depau/EtchDroid)
-
-This repository contains a subset of [libaums](https://github.com/magnusja/libaums), with unneeded stuff removed and specifically reworked to comply with F-Droid requirements (i.e. no unknown Maven repos).
-
-Specifically, I ran `git filter-branch --prune-empty --subdirectory-filter` to keep only the `libaums` module of the original repo and re-added this README and the license. It is meant to be used as a submodule in EtchDroid.
-
-# Original README
-
-libaums
-=======
-[![Javadocs](https://www.javadoc.io/badge/com.github.mjdev/libaums.svg)](https://www.javadoc.io/doc/com.github.mjdev/libaums)
-[ ![Build Status](https://travis-ci.org/magnusja/libaums.svg?branch=develop)](https://travis-ci.org/magnusja/libaums)[ ![codecov](https://codecov.io/gh/magnusja/libaums/branch/develop/graph/badge.svg)](https://codecov.io/gh/magnusja/libaums)[ ![Download](https://api.bintray.com/packages/mjdev/maven/libaums/images/download.svg) ](https://bintray.com/mjdev/maven/libaums/_latestVersion)
-[ ![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/libaums)
+# LibDepaums
 
 A library to access USB mass storage devices (pen drives, external HDDs, card readers) using the Android USB Host API. Currently it supports the SCSI command set and the FAT32 file system.
+
+It's a fork of [libaums](https://github.com/magnusja/libaums). I forked it in order to have more control over the source code (my use case is slightly different than libaums').
+
+### Key differences
+
+- Removed unneeded modules such as `storageprovider`, `javafs` and `httpserver`
+- Ported main classes to Kotlin to increase reliability and null safety (will port more over time, the idea is to port the whole thing to Kotlin)
+- The BlockDevice implementations are public and accessible
+- Fixed the tests so they build. Plan is to avoid downloading test assets at runtime
+- Reworked logic to remove some side effects and make UsbMassStorageDevice Parcelable
 
 ## How to use
 
 ### Install
 
-The library can be included into your project like this:
-
-```ruby
-compile 'com.github.mjdev:libaums:0.5.5'
-```
-
-If you need the HTTP or the storage provider module:
-
-```ruby
-compile 'com.github.mjdev:libaums-httpserver:0.5.2'
-compile 'com.github.mjdev:libaums-storageprovider:0.5.1'
-```
+(to do)
 
 ### Basics
 #### Getting mass storage devices
+
+##### Note
+The following guide is from libaums, things may have changed with the fork. The readme will be updated soon.
 
 ```java
 UsbMassStorageDevice[] devices = UsbMassStorageDevice.getMassStorageDevices(this /* Context or Activity */);
@@ -105,110 +95,7 @@ InputStream is = UsbFileStreamFactory.createBufferedInputStream(file, currentFs)
 device.close();
 ```
 
-#### Provide access to external apps
-
-Usually third party apps do not have access to the files on a mass storage device if the Android system does mount the device or this app integrates this library itself. To solve this issue there are two additional modules to provide access to other app. One uses the Storage Access Framework feature of Android (API level >= 19) and the other one spins up an HTTP server to allow downloading or streaming.
-
-### Storage Access Framework
-[![Javadocs](https://www.javadoc.io/badge/com.github.mjdev/libaums-storageprovider.svg)](https://www.javadoc.io/doc/com.github.mjdev/libaums-storageprovider)
-
-To learn more about this visit: https://developer.android.com/guide/topics/providers/document-provider.html
-
-To integrate this module in your app the only thing you have to do is add the definition in your AndroidManifest.xml.
-
-```xml
-<provider
-    android:name="com.github.mjdev.libaums.storageprovider.UsbDocumentProvider"
-    android:authorities="com.github.mjdev.libaums.storageprovider.documents"
-    android:exported="true"
-    android:grantUriPermissions="true"
-    android:permission="android.permission.MANAGE_DOCUMENTS"
-    android:enabled="@bool/isAtLeastKitKat">
-    <intent-filter>
-        <action android:name="android.content.action.DOCUMENTS_PROVIDER" />
-    </intent-filter>
-</provider>
-```
-
-After that apps using the Storage Access Framework will be able to access the files of the USB mass storage device.
-
-### HTTP server
-[![Javadocs](https://www.javadoc.io/badge/com.github.mjdev/libaums-httpserver.svg)](https://www.javadoc.io/doc/com.github.mjdev/libaums-httpserver)
-
-libaums currently supports two different HTTP server libraries.
-
-1. [NanoHTTPD](https://github.com/NanoHttpd/nanohttpd)
-2. [AsyncHttpServer](https://github.com/koush/AndroidAsync/blob/master/AndroidAsync/src/com/koushikdutta/async/http/server/AsyncHttpServer.java)
-
-You can spin up a server pretty easy, you just have to decide for a HTTP server implementation. If you do not have special requirements, you can just go for one, it should not make much of a difference.
-
-```java
-UsbFile file = ... // can be directory or file
-
-HttpServer server = AsyncHttpServer(8000); // port 8000
-// or
-HttpServer server = NanoHttpdServer(8000); // port 8000
-
-UsbFileHttpServer fileServer = new UsbFileHttpServer(file, server);
-fileServer.start();
-```
-
-The file you privde can either be an actual file or a directory:
-
-1. File: Accessible either via "/" or "/FILE_NAME"
-2. Directory: All files in this directory und sub directories are accessable via their names. Directory listing is not supported!
-
-If you want to be able to access these files when your app is in background, you should implement a service for that. There is an example available in the `httpserver` module. You can use it, but should subclass it or create your own to adapt it to your needs.
-
-```java
-private UsbFileHttpServerService serverService;
-
-ServiceConnection serviceConnection = new ServiceConnection() {
-    @Override
-    public void onServiceConnected(ComponentName name, IBinder service) {
-        Log.d(TAG, "on service connected " + name);
-        UsbFileHttpServerService.ServiceBinder binder = (UsbFileHttpServerService.ServiceBinder) service;
-        serverService = binder.getService();
-    }
-
-    @Override
-    public void onServiceDisconnected(ComponentName name) {
-        Log.d(TAG, "on service disconnected " + name);
-        serverService = null;
-    }
-};
-
-@Override
-protected void onCreate(Bundle savedInstanceState) {
-...
-    serviceIntent = new Intent(this, UsbFileHttpServerService.class);
-...
-}
-
- @Override
-protected void onStart() {
-    super.onStart();
-
-    startService(serviceIntent);
-    bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
-}
-
-private void startHttpServer(final UsbFile file) {
-...
-    serverService.startServer(file, new AsyncHttpServer(8000));
-...
-}
-```
-
-See the example app for additional details on that.
-
-
-#### Hints
-
-1. In the `app/` directory you can find an example application using the library.
-2. When copying a file always set the length via `UsbFile.setLength(long)` first. Otherwise the ClusterChain has to be increased for every call to write. This is very inefficent.
-3. Always use `FileSystem.getChunkSize()` bytes as buffer size, because this alignes with the block sizes drives are using. Everything else is also most likeley a decrease in performance.
-4. A good idea is to wrap the UsbFileInputStream/UsbFileOutputStream into BufferedInputStream/BufferedOutputStream. Also see `UsbFileStreamFactory`.
+# Credits (libaums)
 
 ##### Thesis
 
