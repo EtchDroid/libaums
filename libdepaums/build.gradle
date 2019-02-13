@@ -1,6 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'org.jetbrains.dokka-android'
 
 ext {
     artifact = 'libdepaums'
@@ -55,10 +56,50 @@ dependencies {
     testImplementation 'net.bytebuddy:byte-buddy:1.6.11'
     testImplementation 'org.objenesis:objenesis:2.6'
 
+//    implementation 'com.github.EtchDroid:libdepaums:master-SNAPSHOT'
+
     api 'com.android.support:support-annotations:28.0.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 }
+
 repositories {
     mavenCentral()
 }
 
+
+dokka {
+    moduleName = 'libdepaums'
+    outputFormat = 'javadoc'
+    outputDirectory = "$buildDir/javadoc"
+
+    // List of files with module and package documentation
+    // http://kotlinlang.org/docs/reference/kotlin-doc.html#module-and-package-documentation
+    includes = ['README.md']
+
+    // Use to include or exclude non public members.
+    includeNonPublic = false
+
+    // Do not output deprecated members. Applies globally, can be overridden by packageOptions
+    skipDeprecated = true
+
+    // Emit warnings about not documented members. Applies globally, also can be overridden by packageOptions
+    reportUndocumented = true
+
+    skipEmptyPackages = true // Do not create index pages for empty packages
+}
+
+task dokkaJavadoc(type: org.jetbrains.dokka.gradle.DokkaTask) {
+    outputFormat = 'javadoc'
+    outputDirectory = "$buildDir/javadoc"
+}
+
+// build a jar with javadoc
+task javadocJar(type: Jar, dependsOn: dokkaJavadoc) {
+    classifier = 'javadoc'
+    from "$buildDir/javadoc"
+    archiveName = "javadoc.jar"
+}
+
+artifacts {
+    archives javadocJar
+}
