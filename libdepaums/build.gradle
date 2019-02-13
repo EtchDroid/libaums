@@ -1,10 +1,12 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
+apply plugin: 'com.github.dcendents.android-maven'
 
 ext {
     artifact = 'libdepaums'
+    group = 'eu.depau'
     libraryVersion = '0.6'
-    publishedGroupId = 'eu.depau.etchdroid'
+    publishedGroupId = 'eu.depau'
     libraryName = 'libdepaums'
     libraryDescription = 'Android USB mass storage library with FAT32 support, forked from libaums'
     siteUrl = 'https://github.com/EtchDroid/libdepaums'
