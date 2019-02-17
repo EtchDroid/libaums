@@ -33,7 +33,7 @@ In your module/app `build.gradle`:
 
 ```gradle
 	dependencies {
-	        implementation 'com.github.EtchDroid:libdepaums:v0.6.0-3'
+	        implementation 'com.github.EtchDroid:libdepaums:v0.6.0-4'
 	}
 ```
 
