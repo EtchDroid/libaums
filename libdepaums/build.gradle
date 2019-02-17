@@ -5,9 +5,9 @@ apply plugin: 'org.jetbrains.dokka-android'
 
 ext {
     artifact = 'libdepaums'
-    group = 'eu.depau'
+    group = 'eu.depau.etchdroid'
     libraryVersion = '0.6'
-    publishedGroupId = 'eu.depau'
+    publishedGroupId = 'eu.depau.etchdroid'
     libraryName = 'libdepaums'
     libraryDescription = 'Android USB mass storage library with FAT32 support, forked from libaums'
     siteUrl = 'https://github.com/EtchDroid/libdepaums'
@@ -56,8 +56,6 @@ dependencies {
     testImplementation 'net.bytebuddy:byte-buddy:1.6.11'
     testImplementation 'org.objenesis:objenesis:2.6'
 
-//    implementation 'com.github.EtchDroid:libdepaums:master-SNAPSHOT'
-
     api 'com.android.support:support-annotations:28.0.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 }
@@ -65,7 +63,6 @@ dependencies {
 repositories {
     mavenCentral()
 }
-
 
 dokka {
     moduleName = 'libdepaums'
