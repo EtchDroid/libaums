@@ -1,5 +1,7 @@
 # LibDepaums
 
+[![](https://jitpack.io/v/EtchDroid/libdepaums.svg)](https://jitpack.io/#EtchDroid/libdepaums)
+
 A library to access USB mass storage devices (pen drives, external HDDs, card readers) using the Android USB Host API. Currently it supports the SCSI command set and the FAT32 file system.
 
 It's a fork of [libaums](https://github.com/magnusja/libaums). I forked it in order to have more control over the source code (my use case is slightly different than libaums').
@@ -14,9 +16,26 @@ It's a fork of [libaums](https://github.com/magnusja/libaums). I forked it in or
 
 ## How to use
 
-### Install
+### Add to your project
 
-(to do)
+In root `build.gradle`:
+
+```gradle
+	allprojects {
+		repositories {
+			...
+			maven { url 'https://jitpack.io' }
+		}
+	}
+```
+
+In your module/app `build.gradle`:
+
+```gradle
+	dependencies {
+	        implementation 'com.github.EtchDroid:libdepaums:v0.6.0-3'
+	}
+```
 
 ### Basics
 #### Getting mass storage devices
