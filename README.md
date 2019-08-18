@@ -1,3 +1,11 @@
+## Archived
+
+EtchDroid is switching to [upstream libaums](https://github.com/magnusja/libaums) in order to benefit from performance updates, patches from the community and less maintenance burdain.
+
+Custom patches are applied using this wrapper library: https://github.com/EtchDroid/libaums_wrapper
+
+---
+
 # LibDepaums
 
 [![](https://jitpack.io/v/EtchDroid/libdepaums.svg)](https://jitpack.io/#EtchDroid/libdepaums)
